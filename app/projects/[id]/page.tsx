@@ -7,7 +7,7 @@ export default async function ProjectDetail({
 }) {
   const { id } = await params;
 
-  const response = await fetch(`http://localhost:4000/projects/${id}`, {
+  const response = await fetch(`http://localhost:3000/api/projects/${id}`, {
     cache: 'no-store',
   });
 
@@ -25,7 +25,7 @@ export default async function ProjectDetail({
   const project = await response.json();
 
   return (
-    <main className="p-8">
+    <main className="p-8 max-w-6xl mx-auto">
       <Link
         href="/dashboard"
         className="text-blue-600 hover:underline mb-6 inline-block"
