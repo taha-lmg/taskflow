@@ -53,6 +53,12 @@
   color: #111111;
 }
 
+.item.active {
+  background-color: #e8e8e8;
+  color: #007bff;
+  font-weight: 600;
+}
+
 .dot {
   width: 8px;
   height: 8px;
