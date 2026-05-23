@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import Header from '../components/Header';
 import api from '../api/axios';
-import { useAuth } from '../features/auth/AuthContext';
+import { RootState, AppDispatch } from '../store';
+import { logout } from '../features/auth/authSlice';
+import { setAuthToken } from '../api/axios';
 
 interface Project {
   id: string;
@@ -13,7 +16,8 @@ interface Project {
 export function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { state, dispatch } = useAuth();
+  const dispatch = useDispatch<AppDispatch>();
+  const user = useSelector((state: RootState) => state.auth.user);
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -34,7 +38,8 @@ export function ProjectDetail() {
   }, [id, navigate]);
 
   const handleLogout = () => {
-    dispatch({ type: 'LOGOUT' });
+    setAuthToken(null);
+    dispatch(logout());
   };
 
   if (loading) return <div style={{ padding: '2rem' }}>Chargement...</div>;
@@ -44,7 +49,7 @@ export function ProjectDetail() {
       <Header
         title="TaskFlow"
         onMenuClick={() => {}}
-        userName={state.user?.name}
+        userName={user?.name}
         onLogout={handleLogout}
       />
       <div style={{ padding: '2rem' }}>

@@ -1,85 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import MainContent from '../components/MainContent';
 import ProjectForm from '../components/ProjectForm';
-import api from '../api/axios';
-import { useAuth } from '../features/auth/AuthContext';
+import { useProjects } from '../hooks/useProjects';
+import { RootState, AppDispatch } from '../store';
+import { logout } from '../features/auth/authSlice';
+import { setAuthToken } from '../api/axios';
 import styles from './Dashboard.module.css';
 
-interface Project {
-  id: string;
-  name: string;
-  color: string;
-}
-
-interface Column {
-  id: string;
-  title: string;
-  tasks: string[];
-}
-
 export function Dashboard() {
-  const { state, dispatch } = useAuth();
+  const dispatch = useDispatch<AppDispatch>();
+  const user = useSelector((state: RootState) => state.auth.user);
+  const { projects, columns, loading, addProject, renameProject, deleteProject } = useProjects();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [columns, setColumns] = useState<Column[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [projRes, colRes] = await Promise.all([
-          api.get<Project[]>('/projects'),
-          api.get<Column[]>('/columns'),
-        ]);
-        setProjects(projRes.data);
-        setColumns(colRes.data);
-      } catch (error) {
-        console.error('Erreur:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, []);
-
-  const addProject = async (name: string, color: string) => {
-    try {
-      const res = await api.post<Project>('/projects', { name, color });
-      setProjects([...projects, res.data]);
-      setShowForm(false);
-    } catch (error) {
-      console.error('Erreur lors de l\'ajout du projet:', error);
-    }
-  };
-
-  const renameProject = async (id: string) => {
-    const newName = prompt('Nouveau nom du projet:');
-    if (newName) {
-      try {
-        const res = await api.put<Project>(`/projects/${id}`, { name: newName });
-        setProjects(projects.map(p => p.id === id ? res.data : p));
-      } catch (error) {
-        console.error('Erreur lors du renommage:', error);
-      }
-    }
-  };
-
-  const deleteProject = async (id: string) => {
-    if (confirm('Êtes-vous sûr?')) {
-      try {
-        await api.delete(`/projects/${id}`);
-        setProjects(projects.filter(p => p.id !== id));
-      } catch (error) {
-        console.error('Erreur lors de la suppression:', error);
-      }
-    }
-  };
-
   const handleLogout = () => {
-    dispatch({ type: 'LOGOUT' });
+    setAuthToken(null);
+    dispatch(logout());
   };
 
   if (loading) return <div style={{ padding: '2rem' }}>Chargement...</div>;
@@ -89,7 +29,7 @@ export function Dashboard() {
       <Header
         title="TaskFlow"
         onMenuClick={() => setSidebarOpen(p => !p)}
-        userName={state.user?.name}
+        userName={user?.name}
         onLogout={handleLogout}
       />
       <div className={styles.body}>
@@ -106,7 +46,10 @@ export function Dashboard() {
           </div>
           {showForm && (
             <ProjectForm
-              onSubmit={addProject}
+              onSubmit={async (name, color) => {
+                await addProject(name, color);
+                setShowForm(false);
+              }}
               onCancel={() => setShowForm(false)}
               submitLabel="Créer"
             />

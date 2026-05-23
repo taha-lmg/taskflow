@@ -1,16 +1,17 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../features/auth/AuthContext';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { state } = useAuth();
+  const user = useSelector((state: RootState) => state.auth.user);
   const location = useLocation();
 
-  if (state.user === null) {
+  if (user === null) {
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 

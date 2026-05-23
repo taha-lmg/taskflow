@@ -1,9 +1,10 @@
+import React from 'react';
 import styles from './MainContent.module.css'; 
   
 interface Column { id: string; title: string; tasks: string[]; } 
 interface MainContentProps { columns: Column[]; } 
   
-export default function MainContent({ columns }: MainContentProps) { 
+const MainContent = React.memo(function MainContent({ columns }: MainContentProps) { 
   return ( 
 <main className={styles.main}> 
 <div className={styles.board}> 
@@ -18,4 +19,6 @@ export default function MainContent({ columns }: MainContentProps) {
 </div> 
 </main> 
 ); 
-}
+});
+
+export default MainContent;

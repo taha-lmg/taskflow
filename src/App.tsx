@@ -1,14 +1,15 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './features/auth/AuthContext';
+import { useSelector } from 'react-redux';
+import { RootState } from './store';
 import { Login } from './features/auth/Login';
 import { Dashboard } from './pages/Dashboard';
 import { ProjectDetail } from './pages/ProjectDetail';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 export default function App() {
-  const { state } = useAuth();
+  const user = useSelector((state: RootState) => state.auth.user);
 
-  if (state.user === null) {
+  if (user === null) {
     return <Login />;
   }
 

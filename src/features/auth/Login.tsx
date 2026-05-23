@@ -1,38 +1,41 @@
 import React, { useState } from 'react';
-import { useAuth } from './AuthContext';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState, AppDispatch } from '../../store';
+import { loginStart, loginSuccess, loginFailure } from './authSlice';
+import { setAuthToken } from '../../api/axios';
 
 export function Login() {
-  const { state, dispatch } = useAuth();
+  const dispatch = useDispatch<AppDispatch>();
+  const state = useSelector((state: RootState) => state.auth);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    dispatch({ type: 'LOGIN_START' });
+    dispatch(loginStart());
 
     try {
       const response = await fetch(`http://localhost:4000/users?email=${email}`);
       const users = await response.json();
 
       if (!Array.isArray(users) || users.length === 0) {
-        dispatch({ type: 'LOGIN_FAILURE', payload: 'User not found' });
+        dispatch(loginFailure('User not found'));
         return;
       }
 
       const user = users[0];
 
       if (user.password !== password) {
-        dispatch({ type: 'LOGIN_FAILURE', payload: 'Invalid password' });
+        dispatch(loginFailure('Invalid password'));
         return;
       }
 
       const { password: _, ...userWithoutPassword } = user;
-      dispatch({ type: 'LOGIN_SUCCESS', payload: userWithoutPassword });
+      const token = btoa(JSON.stringify({ userId: user.id, email: user.email }));
+      setAuthToken(token);
+      dispatch(loginSuccess({ user: userWithoutPassword, token }));
     } catch (error) {
-      dispatch({
-        type: 'LOGIN_FAILURE',
-        payload: error instanceof Error ? error.message : 'Login failed',
-      });
+      dispatch(loginFailure(error instanceof Error ? error.message : 'Login failed'));
     }
   };
 
